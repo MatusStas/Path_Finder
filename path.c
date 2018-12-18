@@ -19,8 +19,29 @@ void size_of_grid(int *row, int *column)
 }
 
 
-void load_matrix(int *row, int *column, char *arr[])
+void free_memory(char *arr[],int *row, int *column)
 {
+	for(int i = 0; i < (*row); i++)
+	{
+		free(arr[i]);
+		arr[i] = NULL;
+	}
+
+	free(*arr);
+	
+	*row = 0;
+	*column = 0;
+}
+
+
+int load_matrix(int *row, int *column, char *arr[])
+{
+	if(*arr != NULL)
+	{
+		free_memory(&*arr, row, column);
+		return 0;
+	}
+
 	int sign,
 		i = 0,
 		j = 0;
@@ -41,6 +62,7 @@ void load_matrix(int *row, int *column, char *arr[])
 				}
 		}
 }
+
 
 void print_matrix(int *row, int *column, char *arr[])
 {
