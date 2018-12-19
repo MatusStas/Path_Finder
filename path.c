@@ -74,10 +74,16 @@ int load_matrix(int *row, int *column, int *arr[])
 
 void print_matrix(int *row, int *column, int *arr[])
 {
+	int character;
 	for(int i = 0; i < (*row); i++)
 	{
 		for(int j = 0; j < (*column); j++)
-			printf("%d", *(*(arr + i) + j));
+		{
+			character = *(*(arr + i) + j);
+			if(character < 10 && character > -1)
+				printf("% d ", character);
+			else{printf("%d ", character);}
+		}
 		putchar('\n');
 	}
 }
