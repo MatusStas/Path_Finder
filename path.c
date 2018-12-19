@@ -19,7 +19,7 @@ void size_of_grid(int *row, int *column)
 }
 
 
-void free_memory(char *arr[],int *row, int *column)
+void free_memory(int *arr[],int *row, int *column)
 {
 	for(int i = 0; i < (*row); i++)
 	{
@@ -34,7 +34,7 @@ void free_memory(char *arr[],int *row, int *column)
 }
 
 
-int load_matrix(int *row, int *column, char *arr[])
+int load_matrix(int *row, int *column, int *arr[])
 {
 	if(*arr != NULL)
 	{
@@ -44,35 +44,45 @@ int load_matrix(int *row, int *column, char *arr[])
 
 	int sign,
 		i = 0,
-		j = 0;
+		j = 0,
+		counting = 1;
 
-	arr[i] = (char *) malloc((*column) * sizeof(char));		//allocing memory for array of pointers
+	arr[i] = (int *) malloc((*column) * sizeof(int));		//allocing memory for array of pointers
 
 	FILE *fr = fopen("grid.txt","r");
 	while((sign = getc(fr)) != EOF)
 		{
 			if(sign != '\n')
 			{	
-				(*(*(arr + i) + j++)) = sign;
+				if(sign == '.')
+					(*(*(arr + i) + j++)) = counting++;
+				else if(sign == 'S')
+					(*(*(arr + i) + j++)) = 0;
+				else if(sign == 'F')
+					(*(*(arr + i) + j++)) = -1;
+				else if(sign == 'X')
+					(*(*(arr + i) + j++)) = -2;
 			}
 			else
 				{
-					arr[++i] = (char *) malloc((*column) * sizeof(char));
+					arr[++i] = (int *) malloc((*column) * sizeof(int));
 					j = 0;
 				}
 		}
 }
 
 
-void print_matrix(int *row, int *column, char *arr[])
+void print_matrix(int *row, int *column, int *arr[])
 {
 	for(int i = 0; i < (*row); i++)
 	{
 		for(int j = 0; j < (*column); j++)
-			printf("%c", *(*(arr + i) + j));
+			printf("%d", *(*(arr + i) + j));
 		putchar('\n');
 	}
 }
+
+
 
 
 int main()									//main program
@@ -80,7 +90,9 @@ int main()									//main program
 	char sign;
 	int row = 0, column = 0;
 	int size;
-	char *arr[size];
+	int *arr[size];
+
+
 
 	while(scanf("%c",&sign) == 1)			//while we will type signs to run functions
 		{
