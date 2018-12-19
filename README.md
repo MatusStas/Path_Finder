@@ -15,8 +15,8 @@ by sending me an email.
 
 Let's imagine that you have some kind of grid. It can by square or rectangle of 
 different sizes. Your aim is to find shortest path between two points
-(Start represented as 'S' and Finish represented as 'F') and don't forget
-to avoid obstacles represented by sign 'X' and blank spaces will be represented by '.'.
+(Start represented as 0 and Finish represented as -1) and don't forget
+to avoid obstacles represented by sign -2 and blank spaces will be represented by numbers.
 
 ## Examples of grids
 
