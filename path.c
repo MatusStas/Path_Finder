@@ -89,11 +89,15 @@ void print_matrix(int *row, int *column, int *arr[])
 }
 
 
-int find_point(int *point, int *row, int *column, int *arr[])	
+int point_info(int *point, int *row, int *column, int *arr[])	
 {
 	int i,
 		j,
-		character;
+		character,
+		up,
+		right,
+		down,
+		left;
 
 	scanf("%d", &point[0]);
 
@@ -107,12 +111,25 @@ int find_point(int *point, int *row, int *column, int *arr[])
 				{
 					*(point + 1) = i;	
 					*(point + 2) = j;
+
+					up = i-1;
+					*(point + 3) = (up >= 0 && *(*(arr + up) + j) != -2)? *(*(arr + up) + j): -2;	
+
+					right = j+1;
+					*(point + 4) = (right < (*column) && *(*(arr + i) + right) != -2)? *(*(arr + i) + right): -2;
+
+					down = i+1;
+					*(point + 5) = (down < (*row) && *(*(arr + down) )+ j != -2)? *(*(arr + down) + j): -2;
+
+					left = j-1;
+					*(point + 6) = (left >= 0 && *(*(arr + i) + left) != -2)? *(*(arr + i) + left): -2;
 					return 0;
 				}
 		}
 	}
 	return 0;
 }
+
 
 int main()									//main program
 {
@@ -136,10 +153,10 @@ int main()									//main program
 			}
 			else if(sign == 'p')
 				print_matrix(&row, &column, &*arr);
-			else if(sign == 'f')
+			else if(sign == 'i')
 			{
-				find_point(point, &row, &column, &*arr);
-				//printf("%d %d %d\n", *(point + 0),*(point + 1),*(point + 2));
+				point_info(point, &row, &column, &*arr);
+				//printf("%d %d %d %d %d %d %d\n", *(point + 0),*(point + 1),*(point + 2),*(point + 3),*(point + 4),*(point + 5),*(point+6));
 			}
 
 		}
