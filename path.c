@@ -89,7 +89,7 @@ void print_matrix(int *row, int *column, int *arr[])
 }
 
 
-int point_info(int *point, int *row, int *column, int *arr[])	
+int point_info(int *point,int *point_number, int *row, int *column, int *arr[])	
 {
 	int i,
 		j,
@@ -99,7 +99,7 @@ int point_info(int *point, int *row, int *column, int *arr[])
 		down,
 		left;
 
-	scanf("%d", &point[0]);
+	*(point + 0) = *point_number;
 
 
 	for(i = 0; i < (*row); i++)
@@ -131,6 +131,139 @@ int point_info(int *point, int *row, int *column, int *arr[])
 }
 
 
+int skelet(int *point, int *row, int *column, int *arr[])
+{
+	int list[100000], index = 0;
+	list[index] = 0;
+	int insert = 1;
+
+	int total = (*row)*(*column);
+	int matrix[total][4];
+
+	for(int i =0; i<total; i++)
+		for(int j = 0; j<4;j++)
+			matrix[i][j] = -2;
+
+	int walker;
+	int borders[100000] = {0};
+
+	int yesorno = 1;
+	while(list[index] != -1)
+		{
+			int k,i,j,l;
+			walker = list[index];
+			//printf("%d |", walker);
+			point_info(&*point, &walker, &*row, &*column, &*arr);
+
+			for(k = 3; k < 7; k++)
+			{
+				
+				if(*(point + k) == -2 || *(point + k) == 0)
+					continue;
+				//printf("%d ",*(point + k));
+				for(i = 0; i<total; i++)
+				{
+					for(j = 0; j<4;j++)
+					{
+						if(*(point + k) == matrix[i][j])
+						{
+							yesorno = 0;
+						}
+					}
+				}
+				if(yesorno)
+				{
+					matrix[walker][(borders[walker])++] = *(point + k);
+					list[insert++] = *(point + k);
+				}
+				yesorno = 1;
+
+			}
+			//putchar('\n');
+			index++;
+			//*return 0;
+		}
+
+	int i,j,k,constant = 0;
+
+	int *path = (int *) malloc((constant+1) * sizeof(int));
+	int searched_number = -1;
+
+	int ending = 0;
+	while(searched_number != 0)
+	{
+		for(i = 0; i<total; i++)
+			{
+				if(matrix[i][0] == -2)
+					continue;
+								
+				while(matrix[i][j] != -2)
+					{	
+						if(matrix[i][j++] == searched_number)
+							{
+								*(path + constant) = i;
+								searched_number = i;
+								constant++;
+								path = (int *) realloc(path, (constant+1)*sizeof(int));
+								ending = 0;
+							}
+						else
+							{
+								ending++;
+								if(ending > 50000)
+								{
+									printf("Path doesn't exist\n\n");
+									return 0;
+								}
+							}
+					}
+			j = 0;
+			}
+	}
+	constant--;
+	printf("Shortest path is to do %d steps\n\n", constant);
+	for(i = 0; i < constant; i++)
+		for(j = 0; j < *row; j++)
+			for(k = 0; k < *column; k++)
+			{
+				if((*(path + i)) == *(*(arr + j) + k))
+					*(*(arr + j) + k) = -8;
+			}
+	return 0;
+}
+
+
+void path_finder(int *row, int *column, int *arr[])
+{
+	int number;
+	for(int i = 0; i < *row; i++)
+	{
+		for(int j = 0; j < *column; j++)
+		{
+			number = *(*(arr + i) + j);
+			if(number > 0)
+				*(*(arr + i) + j) = '.';
+			else if(number == -2)
+				*(*(arr + i) + j) = 'X';
+			else if(number == -1)
+				*(*(arr + i) + j) = 'F';
+			else if(number == -0)
+				*(*(arr + i) + j) = 'S';
+			else if(number == -8)
+				*(*(arr + i) + j) = '*';
+		}
+	}
+
+	for(int i = 0; i < *row; i++)
+	{
+		for(int j = 0; j < *column; j++)
+		{
+			printf("%c", *(*(arr + i )+j));
+		}
+		putchar('\n');
+	}
+}
+
 int main()									//main program
 {
 	char sign;
@@ -141,7 +274,7 @@ int main()									//main program
 												// second position x location
 												// third postion y location
 												// 4 - 7 neighbours if obstacle or doesn't exist set to -2
- 
+ 	int point_number = 0;
 	while(scanf("%c",&sign) == 1)			//while we will type signs to run functions
 		{
 			if(sign == 'q')	
@@ -154,10 +287,12 @@ int main()									//main program
 			else if(sign == 'p')
 				print_matrix(&row, &column, &*arr);
 			else if(sign == 'i')
+				point_info(point, &point_number,&row, &column, &*arr);
+			else if(sign == 'f')
 			{
-				point_info(point, &row, &column, &*arr);
-				//printf("%d %d %d %d %d %d %d\n", *(point + 0),*(point + 1),*(point + 2),*(point + 3),*(point + 4),*(point + 5),*(point+6));
+				skelet(point, &row, &column, &*arr);
+				path_finder(&row, &column, &*arr);
+				return 0;
 			}
-
 		}
 }
