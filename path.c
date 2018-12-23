@@ -1,190 +1,182 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-
+/*
+this function scans file, to get information how much rows and collumns 
+current grid has
+*/
 void size_of_grid(int *row, int *column)
 {
 	int sign,
 		total = 0;
 
-	FILE *fr = fopen("grid.txt","r");		//opening file for reading characters
-	while((sign = getc(fr)) != EOF)			//read while not end-of-file
-		(sign != '\n') ? total++ : (*row)++;
+	FILE *fr = fopen("grid.txt","r");			//opening file for reading characters
+	while((sign = getc(fr)) != EOF)				//read while not end-of-file
+		(sign != '\n') ? total++ : (*row)++;	
 
-	(*column) = total/(*row);
+	(*column) = total/(*row);				
 	
-	fclose(fr);								//always need to close file and initialize to NULL
+	fclose(fr);									//always need to close file and initialize to NULL
 	fr = NULL;
 }
-
-
+/*
+Is necessary to free memory, because we work with dynamic arrays
+*/
 void free_memory(int *arr[],int *row, int *column)
 {
-	for(int i = 0; i < (*row); i++)
+	for(int y = 0; y < (*row); y++)
 	{
-		free(arr[i]);
-		arr[i] = NULL;
+		free(arr[y]);
+		arr[y] = NULL;
 	}
 
 	free(*arr);
-	
 	*row = 0;
 	*column = 0;
 }
-
-
+/*
+this function fill characters from file to 2 dymensional dynamic array
+*/
 int load_matrix(int *row, int *column, int *arr[])
 {
-	if(*arr != NULL)
-	{
-		free_memory(&*arr, row, column);
-		return 0;
-	}
-
 	int sign,
-		i = 0,
-		j = 0,
-		counting = 1;
+		y = 0,												//y behaves like row
+		x = 0,												//x behaves like collumn
+		point_number = 1;
 
-	arr[i] = (int *) malloc((*column) * sizeof(int));		//allocing memory for array of pointers
+	arr[y] = (int *) malloc((*column) * sizeof(int));		//allocing memory for array of pointers
 
-	FILE *fr = fopen("grid.txt","r");
-	while((sign = getc(fr)) != EOF)
+	FILE *fr = fopen("grid.txt","r");						//opening file for reading characters
+	while((sign = getc(fr)) != EOF)							//read while not end-of-file
 		{
-			if(sign != '\n')
+			if(sign != '\n')								//at this point we need to label characters by norms
 			{	
-				if(sign == '.')
-					(*(*(arr + i) + j++)) = counting++;
-				else if(sign == 'S')
-					(*(*(arr + i) + j++)) = 0;
-				else if(sign == 'F')
-					(*(*(arr + i) + j++)) = -1;
-				else if(sign == 'X')
-					(*(*(arr + i) + j++)) = -2;
+				if(sign == '.')								
+					(*(*(arr + y) + x++)) = point_number++;		
+				else if(sign == 'S')						//if sign is S like Start label that character as 0
+					(*(*(arr + y) + x++)) = 0;
+				else if(sign == 'F')						//if sign is F like Finish label that character as -1
+					(*(*(arr + y) + x++)) = -1;
+				else if(sign == 'X')						//if sign is X like Obstacle label that character as -2
+					(*(*(arr + y) + x++)) = -2;
 			}
 			else
 				{
-					arr[++i] = (int *) malloc((*column) * sizeof(int));
-					j = 0;
+					arr[++y] = (int *) malloc((*column) * sizeof(int));		//allocating memory for next collumn
+					x = 0;													//setting x (collumn) to 0, because new collumn starts
 				}
 		}
+
+	//fclose(fr);												//always need to close file and initialize to NULL
+	//fr = NULL;
 }
-
-
-void print_matrix(int *row, int *column, int *arr[])
-{
-	int character;
-	for(int i = 0; i < (*row); i++)
-	{
-		for(int j = 0; j < (*column); j++)
-		{
-			character = *(*(arr + i) + j);
-			if(character < 10 && character > -1)
-				printf("% d ", character);
-			else{printf("%d ", character);}
-		}
-		putchar('\n');
-	}
-}
-
-
+/*
+this function works with dynamic array, which holds 7 information about point
+first place is point number or name of point represented by number
+second and third places are point coordinations x and y
+fourth - seventh are points neighbours, neighbours from North, East, South and West
+*/
 int point_info(int *point,int *point_number, int *row, int *column, int *arr[])	
 {
-	int i,
-		j,
-		character,
-		up,
-		right,
-		down,
-		left;
+	int y,												//y behaves like row
+		x,												//x behaves like collumn
+		current_number,
+		North,
+		East,
+		South,
+		West;
 
 	*(point + 0) = *point_number;
 
 
-	for(i = 0; i < (*row); i++)
+	for(y = 0; y < (*row); y++)							//scanning entire 2d array to find our point_number
 	{
-		for(j = 0; j < (*column); j++)
+		for(x = 0; x < (*column); x++)
 		{
-			character = *(*(arr + i) + j);
-			if(*(point + 0)== character)
+			current_number = *(*(arr + y) + x);
+			if(*(point + 0) == current_number)			//if our point_number is found, his other information are filled
 				{
-					*(point + 1) = i;	
-					*(point + 2) = j;
+					*(point + 1) = y;					//setting y and x coordinates
+					*(point + 2) = x;
 
-					up = i-1;
-					*(point + 3) = (up >= 0 && *(*(arr + up) + j) != -2)? *(*(arr + up) + j): -2;	
+					//checking the borders or obstacles
+					North = y-1;
+					*(point + 3) = (North >= 0 && *(*(arr + North) + x) != -2)? *(*(arr + North) + x): -2;	
 
-					right = j+1;
-					*(point + 4) = (right < (*column) && *(*(arr + i) + right) != -2)? *(*(arr + i) + right): -2;
+					East = x+1;
+					*(point + 4) = (East < (*column) && *(*(arr + y) + East) != -2)? *(*(arr + y) + East): -2;
 
-					down = i+1;
-					*(point + 5) = (down < (*row) && *(*(arr + down) )+ j != -2)? *(*(arr + down) + j): -2;
+					South = y+1;
+					*(point + 5) = (South < (*row) && *(*(arr + South) )+ x != -2)? *(*(arr + South) + x): -2;
 
-					left = j-1;
-					*(point + 6) = (left >= 0 && *(*(arr + i) + left) != -2)? *(*(arr + i) + left): -2;
+					West = x-1;
+					*(point + 6) = (West >= 0 && *(*(arr + y) + West) != -2)? *(*(arr + y) + West): -2;
 					return 0;
 				}
 		}
 	}
 	return 0;
 }
-
-
-int skelet(int *point, int *row, int *column, int *arr[])
+/*
+this function converts characters from 2d array to new array thankfully algorithm called Breadth-first-search (bfs)
+*/
+int bfs(int *point, int *row, int *column, int *arr[])
 {
-	int list[100000], index = 0;
-	list[index] = 0;
-	int insert = 1;
-
 	int total = (*row)*(*column);
-	int matrix[total][4];
 
-	for(int i =0; i<total; i++)
-		for(int j = 0; j<4;j++)
-			matrix[i][j] = -2;
+	int list[total],
+		index = 0,
+		insert = 1;
 
-	int walker;
-	int borders[100000] = {0};
+	list[index] = 0;
+
+	
+	int matrix[total][4],
+		y, x;
+
+	for(y = 0; y<total; y++)			//initializing all character in matrix to -2 like obstacle
+		for(x = 0; x<4; x++)
+			matrix[y][x] = -2;
+
+	int current_number,
+		borders[total],
+		i;
+
+	for(i = 0; i<total; i++)			//initializing all character in array border to 0, like empty
+		borders[i] = 0;
 
 	int yesorno = 1;
 	while(list[index] != -1)
 		{
-			int k,i,j,l;
-			walker = list[index];
-			//printf("%d |", walker);
-			point_info(&*point, &walker, &*row, &*column, &*arr);
+			int k,y,x,l;
+			current_number = list[index];
+			
+			point_info(&*point, &current_number, &*row, &*column, &*arr);
 
 			for(k = 3; k < 7; k++)
 			{
-				
 				if(*(point + k) == -2 || *(point + k) == 0)
 					continue;
-				//printf("%d ",*(point + k));
-				for(i = 0; i<total; i++)
+
+				for(y = 0; y<total; y++)
 				{
-					for(j = 0; j<4;j++)
+					for(x = 0; x<4;x++)
 					{
-						if(*(point + k) == matrix[i][j])
-						{
+						if(*(point + k) == matrix[y][x])
 							yesorno = 0;
-						}
 					}
 				}
 				if(yesorno)
 				{
-					matrix[walker][(borders[walker])++] = *(point + k);
+					matrix[current_number][(borders[current_number])++] = *(point + k);
 					list[insert++] = *(point + k);
 				}
 				yesorno = 1;
-
 			}
-			//putchar('\n');
 			index++;
-			//*return 0;
 		}
 
-	int i,j,k,constant = 0;
+	int k,constant = 0;
 
 	int *path = (int *) malloc((constant+1) * sizeof(int));
 	int searched_number = -1;
@@ -192,17 +184,17 @@ int skelet(int *point, int *row, int *column, int *arr[])
 	int ending = 0;
 	while(searched_number != 0)
 	{
-		for(i = 0; i<total; i++)
+		for(y = 0; y<total; y++)
 			{
-				if(matrix[i][0] == -2)
+				if(matrix[y][0] == -2)
 					continue;
 								
-				while(matrix[i][j] != -2)
+				while(matrix[y][x] != -2)
 					{	
-						if(matrix[i][j++] == searched_number)
+						if(matrix[y][x++] == searched_number)
 							{
-								*(path + constant) = i;
-								searched_number = i;
+								*(path + constant) = y;
+								searched_number = y;
 								constant++;
 								path = (int *) realloc(path, (constant+1)*sizeof(int));
 								ending = 0;
@@ -210,24 +202,24 @@ int skelet(int *point, int *row, int *column, int *arr[])
 						else
 							{
 								ending++;
-								if(ending > 50000)
+								if(ending > 10000)
 								{
 									printf("Path doesn't exist\n\n");
 									return 0;
 								}
 							}
 					}
-			j = 0;
+			x = 0;
 			}
 	}
 	constant--;
-	printf("Shortest path is to do %d steps\n\n", constant);
-	for(i = 0; i < constant; i++)
-		for(j = 0; j < *row; j++)
+	printf("\nShortest path is %d steps to do\n\n", constant);
+	for(y = 0; y < constant; y++)
+		for(x = 0; x < *row; x++)
 			for(k = 0; k < *column; k++)
 			{
-				if((*(path + i)) == *(*(arr + j) + k))
-					*(*(arr + j) + k) = -8;
+				if((*(path + y)) == *(*(arr + x) + k))
+					*(*(arr + x) + k) = -3;
 			}
 	return 0;
 }
@@ -235,30 +227,30 @@ int skelet(int *point, int *row, int *column, int *arr[])
 
 void path_finder(int *row, int *column, int *arr[])
 {
-	int number;
-	for(int i = 0; i < *row; i++)
+	int current_number;
+	for(int y = 0; y < *row; y++)
 	{
-		for(int j = 0; j < *column; j++)
+		for(int x = 0; x < *column; x++)
 		{
-			number = *(*(arr + i) + j);
-			if(number > 0)
-				*(*(arr + i) + j) = '.';
-			else if(number == -2)
-				*(*(arr + i) + j) = 'X';
-			else if(number == -1)
-				*(*(arr + i) + j) = 'F';
-			else if(number == -0)
-				*(*(arr + i) + j) = 'S';
-			else if(number == -8)
-				*(*(arr + i) + j) = '*';
+			current_number = *(*(arr + y) + x);
+			if(current_number > 0)
+				*(*(arr + y) + x) = ' ';
+			else if(current_number == -2)
+				*(*(arr + y) + x) = '#';
+			else if(current_number == -1)
+				*(*(arr + y) + x) = 'F';
+			else if(current_number == -0)
+				*(*(arr + y) + x) = 'S';
+			else if(current_number == -3)
+				*(*(arr + y) + x) = '.';
 		}
 	}
 
-	for(int i = 0; i < *row; i++)
+	for(int y = 0; y < *row; y++)					//printing grid + path
 	{
-		for(int j = 0; j < *column; j++)
+		for(int x = 0; x < *column; x++)
 		{
-			printf("%c", *(*(arr + i )+j));
+			printf("%c", *(*(arr + y )+x));
 		}
 		putchar('\n');
 	}
@@ -266,33 +258,19 @@ void path_finder(int *row, int *column, int *arr[])
 
 int main()									//main program
 {
-	char sign;
-	int row = 0, column = 0;
-	int size;
+	int row = 0,
+		column = 0,
+		size,
+		point_number = 0;
+
 	int *arr[size];
-	int *point = (int *) malloc(7*sizeof(int));	// first position what character
-												// second position x location
-												// third postion y location
-												// 4 - 7 neighbours if obstacle or doesn't exist set to -2
- 	int point_number = 0;
-	while(scanf("%c",&sign) == 1)			//while we will type signs to run functions
-		{
-			if(sign == 'q')	
-				return 0;					//quit the program
-			else if(sign == 'l')
-			{
-				size_of_grid(&row, &column);
-				load_matrix(&row, &column,&*arr);
-			}
-			else if(sign == 'p')
-				print_matrix(&row, &column, &*arr);
-			else if(sign == 'i')
-				point_info(point, &point_number,&row, &column, &*arr);
-			else if(sign == 'f')
-			{
-				skelet(point, &row, &column, &*arr);
-				path_finder(&row, &column, &*arr);
-				return 0;
-			}
-		}
+	int *point = (int *) malloc(7*sizeof(int));	
+ 	
+	size_of_grid(&row, &column);
+	load_matrix(&row, &column,&*arr);
+	point_info(point, &point_number,&row, &column, &*arr);//**
+	bfs(point, &row, &column, &*arr);
+	path_finder(&row, &column, &*arr);
+	free_memory(*&arr, &row, &column);
+	return 0;	
 }
